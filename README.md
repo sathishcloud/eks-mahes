@@ -48,6 +48,7 @@ Cluster creation completed
 Now check 
 Node - kubectl get node
 Resource - kubectl get pods 
+aws eks list-clusters
 
 Resource creation
 =================
