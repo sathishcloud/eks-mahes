@@ -48,7 +48,37 @@ Cluster creation completed
 Now check 
 Node - kubectl get node
 Resource - kubectl get pods 
-aws eks list-clusters
+
+**To list the cluster **
+cmd = aws eks list-clusters
+**Manually create an S3 bucket**
+cmd = aws s3 mb s3://sathish-eks-state
+cmd = export EKS_STATE_STORE=s3://sathish-eks-state
+**Save cluster details**
+cmd aws eks describe-cluster --name <cluster-name> --region <region> --output yaml > eks-cluster.yaml
+aws s3 cp eks-cluster.yaml $EKS_STATE_STORE/
+**Store Cluster Configurations in S3**
+aws eks update-kubeconfig --name <cluster-name> --region <region>
+aws s3 cp ~/.kube/config $EKS_STATE_STORE/kubeconfig
+
+**Automating EKS Cluster State Storage**
+create shell script file 
+eks-backup.sh
+chmod +x eks-backup.sh
+#!/bin/bash
+# Define EKS cluster name and region
+CLUSTER_NAME="sathish-eks-cluster"
+REGION="us-east-1"
+S3_BUCKET="s3://sathish-eks-state"
+# Get cluster details
+aws eks describe-cluster --name $CLUSTER_NAME --region $REGION --output yaml > cluster-info.yaml
+# Save to S3
+aws s3 cp cluster-info.yaml $S3_BUCKET/cluster-info-$(date +%Y%m%d%H%M%S).yaml
+
+crontab -e
+* * * * * /path/to/eks-backup.sh
+crontab -l 
+
 
 Resource creation
 =================
