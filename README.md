@@ -1,17 +1,25 @@
 # eks-mahes
 
-aws cli installation
+client machine creation 
+=======================
+
+login as login ubuntu 
+sudo -i
 sudo apt update
+
+aws cli installation
+====================
 sudo apt install -y curl unzip
 curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
 unzip awscliv2.zip
 sudo ./aws/install
 aws --version
-or
+or 
 sudo apt update && sudo apt install -y curl unzip && curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" && unzip awscliv2.zip && sudo ./aws/install && aws --version
 
-
 kubectl installation
+====================
+
 curl -Lo kubectl https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl
 chmod +x ./kubectl
 sudo mv ./kubectl /usr/local/bin/kubectl
@@ -19,124 +27,60 @@ kubectl version --client
 or
 curl -Lo kubectl https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl && chmod +x ./kubectl && sudo mv ./kubectl /usr/local/bin/kubectl && kubectl version --client
 
-
-pod creation
-apiVersion: v1
-kind: Pod
-metadata:
-  name: nginx
-spec:
-  containers:
-  - name: nginx
-    image: nginx:1.14.2
-    ports:
-    - containerPort: 80
-
-replicaset creation 
-apiVersion: apps/v1
-kind: ReplicaSet
-metadata:
-  name: frontend
-  labels:
-    app: guestbook
-    tier: frontend
-spec:
-  # modify replicas according to your case
-  replicas: 3
-  selector:
-    matchLabels:
-      tier: frontend
-  template:
-    metadata:
-      labels:
-        tier: frontend
-    spec:
-      containers:
-      - name: php-redis
-        image: us-docker.pkg.dev/google-samples/containers/gke/gb-frontend:v5
-
-deployment creation
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: nginx-deployment
-  labels:
-    app: nginx
-spec:
-  replicas: 3
-  selector:
-    matchLabels:
-      app: nginx
-  template:
-    metadata:
-      labels:
-        app: nginx
-    spec:
-      containers:
-      - name: nginx
-        image: nginx:1.14.2
-        ports:
-        - containerPort: 80
-
-eks cluster creatio using cli
+Eksctl cluster creation 
+==============================
 curl --silent --location "https://github.com/eksctl-io/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp && sudo mv /tmp/eksctl /usr/local/bin
 eksctl version
 eksctl create cluster --name myekscluster2 --region ap-south-1 --node-type t2.medium --zones ap-south-1a,ap-south-1b
 
-nodeport creation (2nodes, 2pods)
-apiVersion: v1
-kind: Pod
-metadata:
-  name: nginx-pod
-  labels:
-    app: nginx
-spec:
-  containers:
-    - name: nginx
-      image: nginx
-      ports:
-        - containerPort: 80
----
-apiVersion: v1
-kind: Pod
-metadata:
-  name: httpd-pod
-  labels:
-    app: httpd
-spec:
-  containers:
-    - name: httpd
-      image: httpd
-      ports:
-        - containerPort: 80
----
+IAM role :-
+
+Attach the following Policies:-
+For Client machine attach --> EC2 to admin role
+For Cluster automaticaly it will create and attach role and permission  --> AmazonEKSClusterPolicy/AmazonEKSVPCResourceController
+For Worker node and master node eks will create and attach role and policies --> AmazonEKSClusterPolicy/AmazonEKSVPCResourceController
+AmazonEC2ContainerRegistryReadOnly
+AmazonEKS_CNI_Policy
+AmazonEKSWorkerNodePolicy
+AmazonSSMManagedInstanceCore
+
+Cluster creation completed
+Now check 
+Node - kubectl get node
+Resource - kubectl get pods 
+
+Resource creation
+=================
 apiVersion: v1
 kind: Service
 metadata:
-  name: nginx-service
+  name: load-dep-001
 spec:
+  type: LoadBalancer
   selector:
-    app: nginx
-  type: NodePort
+    app: myapp
   ports:
-    - port: 80
-      targetPort: 80
-      nodePort: 30080  # NGINX exposed on this port
+    - name: http
+      protocol: TCP
+      port: 80
 ---
-apiVersion: v1
-kind: Service
+apiVersion: apps/v1
+kind: Deployment 
 metadata:
-  name: httpd-service
+  name: deployment-load1
 spec:
+  replicas: 3
   selector:
-    app: httpd
-  type: NodePort
-  ports:
-    - port: 80
-      targetPort: 80
-      nodePort: 30081  # HTTPD exposed on this port
+    matchLabels:
+      app: myapp
+  template:
+    metadata:
+      labels:
+        app: myapp
 
-
-
-
-
+    spec:
+      containers:
+        - name: httpd
+          image: httpd
+          ports:
+           - containerPort: 80
