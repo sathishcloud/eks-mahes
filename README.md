@@ -33,51 +33,24 @@ curl --silent --location "https://github.com/eksctl-io/eksctl/releases/latest/do
 eksctl version
 eksctl create cluster --name myekscluster2 --region ap-south-1 --node-type t2.medium --zones ap-south-1a,ap-south-1b
 
-IAM role :-
-
-Attach the following Policies:-
-For Client machine attach --> EC2 to admin role
-For Cluster automaticaly it will create and attach role and permission  --> AmazonEKSClusterPolicy/AmazonEKSVPCResourceController
-For Worker node and master node eks will create and attach role and policies --> AmazonEKSClusterPolicy/AmazonEKSVPCResourceController
-AmazonEC2ContainerRegistryReadOnly
-AmazonEKS_CNI_Policy
-AmazonEKSWorkerNodePolicy
-AmazonSSMManagedInstanceCore
 
 Cluster creation completed
 Now check 
 Node - kubectl get node
 Resource - kubectl get pods 
+eksctl delete cluster --name my-cluster --region us-east-1
+eksctl get clusters --region us-east-1
+eksctl get nodegroup --cluster my-cluster --region us-east-1
+eksctl delete nodegroup --cluster my-cluster --name new-nodegroup --region us-east-1
 
-**To list the cluster **
-cmd = aws eks list-clusters
-**Manually create an S3 bucket**
-cmd = aws s3 mb s3://sathish-eks-state
-cmd = export EKS_STATE_STORE=s3://sathish-eks-state
-**Save cluster details**
-cmd aws eks describe-cluster --name <cluster-name> --region <region> --output yaml > eks-cluster.yaml
-aws s3 cp eks-cluster.yaml $EKS_STATE_STORE/
-**Store Cluster Configurations in S3**
-aws eks update-kubeconfig --name <cluster-name> --region <region>
-aws s3 cp ~/.kube/config $EKS_STATE_STORE/kubeconfig
+**Kubernetes Access**
+aws eks update-kubeconfig --name my-cluster --region us-east-1
+kubectl get nodes
+eksctl get cluster --name my-cluster --region us-east-1
 
-**Automating EKS Cluster State Storage**
-create shell script file 
-eks-backup.sh
-chmod +x eks-backup.sh
-#!/bin/bash
-# Define EKS cluster name and region
-CLUSTER_NAME="sathish-eks-cluster"
-REGION="us-east-1"
-S3_BUCKET="s3://sathish-eks-state"
-# Get cluster details
-aws eks describe-cluster --name $CLUSTER_NAME --region $REGION --output yaml > cluster-info.yaml
-# Save to S3
-aws s3 cp cluster-info.yaml $S3_BUCKET/cluster-info-$(date +%Y%m%d%H%M%S).yaml
-
-crontab -e
-* * * * * /path/to/eks-backup.sh
-crontab -l 
+**Logging & Monitoring**
+eksctl utils update-cluster-logging --cluster my-cluster --enable-types all --approve
+aws logs describe-log-groups --log-group-name /aws/eks/my-cluster/cluster
 
 
 Resource creation
