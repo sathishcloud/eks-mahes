@@ -34,12 +34,13 @@ eksctl version
 eksctl create cluster --name myekscluster2 --region ap-south-1 --node-type t2.medium --zones ap-south-1a,ap-south-1b
 
 
-Cluster creation completed
+**Cluster creation completed**
 Now check 
 Node - kubectl get node
 Resource - kubectl get pods 
-eksctl delete cluster --name my-cluster --region us-east-1
-eksctl get clusters --region us-east-1
+eksctl get clusters --region ap-south-1
+eksctl delete cluster --name myekscluster2 --region ap-south-1
+
 eksctl get nodegroup --cluster my-cluster --region us-east-1
 eksctl delete nodegroup --cluster my-cluster --name new-nodegroup --region us-east-1
 
