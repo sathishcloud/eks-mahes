@@ -33,6 +33,9 @@ curl --silent --location "https://github.com/eksctl-io/eksctl/releases/latest/do
 eksctl version
 eksctl create cluster --name myekscluster2 --region ap-south-1 --node-type t2.medium --zones ap-south-1a,ap-south-1b
 
+## for connection
+aws eks --region <region-name> update-kubeconfig --name <cluster-name>
+
 
 **Cluster creation completed**
 Now check 
